@@ -23,6 +23,11 @@ import android.widget.Toast;
 import com.example.school.model.LocalCookieJar;
 import com.example.school.model.SetOkHttp;
 
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+
 import java.io.IOException;
 import java.util.List;
 
@@ -47,6 +52,7 @@ public class MainActivity extends AppCompatActivity {
     private String cookieStr;
     private SharedPreferences sharedPreferences;
     private SharedPreferences.Editor editor;
+    private Boolean ok=true;
     OkHttpClient okHttpClient = new OkHttpClient().newBuilder().cookieJar(new LocalCookieJar()).build();
 
     @Override
@@ -75,32 +81,6 @@ public class MainActivity extends AppCompatActivity {
             textNames.setText(name);
             passWords.setText(password);
         }
-        enter.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(rember_Password.isChecked()){
-                    editor=sharedPreferences.edit();
-                    editor.putString("学号",textNames.getText().toString());
-                    editor.putString("密码",passWords.getText().toString());
-                    editor.putBoolean("记住密码",true);
-                }
-                if(!rember_Password.isChecked()){
-                    editor=sharedPreferences.edit();
-                    editor.putString("学号","");
-                    editor.putString("密码","");
-                    editor.putBoolean("记住密码",false);
-                }
-                editor.apply();
-                textName=textNames.getText().toString();
-                Log.d("Nmae",textName);
-                passWord=passWords.getText().toString();
-                Log.d("word",passWord);
-                code = id_code.getText().toString();
-                Log.d("code", code);
-                send();
-                // send2();
-            }
-        });
         eye_enter.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -113,6 +93,22 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+        sendHttp();
+        enter.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    textName=textNames.getText().toString();
+                    Log.d("Nmae",textName);
+                    passWord=passWords.getText().toString();
+                    Log.d("word",passWord);
+                    code = id_code.getText().toString();
+                    Log.d("code", code);
+                    send();
+                }
+            });
+    }
+
+    private void sendHttp(){
         SetOkHttp.setHttpGet(okHttpClient, "http://222.24.62.120/CheckCode.aspx", new Callback() {
             @Override
             public void onFailure(okhttp3.Call call, IOException e) {
@@ -151,6 +147,45 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private void sendHttp2(){
+        SetOkHttp.setHttpGet(okHttpClient, "http://222.24.62.120/CheckCode.aspx", new Callback() {
+            @Override
+            public void onFailure(okhttp3.Call call, IOException e) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(MainActivity.this, "加载失败", Toast.LENGTH_LONG);
+                    }
+                });
+            }
+
+            @Override
+            public void onResponse(okhttp3.Call call, Response response) throws IOException {
+                Log.d("res1",response.toString());
+                final byte[] byte_image = response.body().bytes();//当OkHttp成功获取验证码后，会返回的byte[]数据
+//                Headers headers = response.headers();
+//                Log.d("info_headers", "header " + headers);
+//                List<String> cookies = headers.values("Set-Cookie");
+//                String session = cookies.get(0);
+//                Log.d("info_cookies", "onResponse-size: " + cookies);
+//                cookieStr = session.substring(0, session.indexOf(";"));
+//                Log.i("info_s", "session is  :" + cookieStr);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        //加载网络成功进行UI的更新,处理得到的图片资源
+                        //通过message，拿到字节数组
+                        // byte[] Picture = (byte[]) msg.obj;
+                        //使用BitmapFactory工厂，把字节数组转化为bitmap
+                        Bitmap bitmap = BitmapFactory.decodeByteArray(byte_image, 0, byte_image.length);
+                        //通过imageview，设置图片
+                        imageView.setImageBitmap(bitmap);//ImageView 显示验证码的组件
+                    }
+                });
+            }
+        });
+    }
+
     private void send() {
         SetOkHttp.setHttpPost(okHttpClient,"http://222.24.62.120/default2.aspx", textName, passWord, cookieStr, code,
                 new okhttp3.Callback() {
@@ -162,7 +197,109 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void onResponse(okhttp3.Call call, Response response) throws IOException {
-                        Log.d("responsePass", response.body().string());
+                        Document doc= Jsoup.parse(response.body().string());
+                        Elements links=doc.select("a[href]");
+                        Element nameElement = doc.getElementById("xhxm");
+                        Elements alerts=doc.select("script[language]");
+
+                        for(Element alert:alerts){
+                            if(alert.data().contains("用户名不存在或未按照要求参加教学活动")){
+                               Log.d("用户名","用户名");
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Toast.makeText(MainActivity.this,"用户名不存在或未按照要求参加教学活动",Toast.LENGTH_LONG).show();
+                                        textNames.setText("");
+                                        passWords.setText("");
+                                        id_code.setText("");
+                                    }
+                                });
+                                sendHttp2();
+                            }
+                            else if(alert.data().contains("密码错误")){
+                                Log.d("密码错误","密码错误");
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Toast.makeText(MainActivity.this,"密码错误",Toast.LENGTH_LONG).show();
+                                        passWords.setText("");
+                                        textNames.setText(textName);
+                                        id_code.setText("");
+                                    }
+                                });
+                                sendHttp2();
+                            }
+                            else if(alert.data().contains("验证码不正确")){
+                                Log.d("验证码不正确","验证码不正确");
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Toast.makeText(MainActivity.this,"验证码不正确",Toast.LENGTH_LONG).show();
+                                        textNames.setText(textName);
+                                        passWords.setText(passWord);
+                                        id_code.setText("");
+                                    }
+                                });
+                                sendHttp2();
+                            }
+                            else if(alert.data().contains("用户名不能为空")){
+                                Log.d("用户名不能为空","用户名不能为空");
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Toast.makeText(MainActivity.this,"用户名不能为空",Toast.LENGTH_LONG).show();
+                                        textNames.setText("");
+                                        passWords.setText("");
+                                        id_code.setText("");
+                                    }
+                                });
+                                sendHttp2();
+                            }
+                            else if(alert.data().contains("密码不能为空")){
+                                Log.d("密码不能为空","密码不能为空");
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Toast.makeText(MainActivity.this,"密码不能为空",Toast.LENGTH_LONG).show();
+                                        textNames.setText(textName);
+                                        passWords.setText("");
+                                        id_code.setText("");
+                                    }
+                                });
+                                sendHttp2();
+                            }
+                            else if(alert.data().contains("验证码不能为空，如看不清请刷新")){
+                                Log.d("验证码不能为空","验证码不能为空");
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Toast.makeText(MainActivity.this,"验证码不能为空",Toast.LENGTH_LONG).show();
+                                        textNames.setText(textName);
+                                        passWords.setText(passWord);
+                                        id_code.setText("");
+                                    }
+                                });
+                                sendHttp2();
+                            }else if(nameElement!=null){
+                                String studentName = nameElement.html();
+                                Log.d("nameEle",studentName);
+                                if(rember_Password.isChecked()){
+                                    editor=sharedPreferences.edit();
+                                    editor.putString("学号",textNames.getText().toString());
+                                    editor.putString("密码",passWords.getText().toString());
+                                    editor.putBoolean("记住密码",true);
+                                }
+                                if(!rember_Password.isChecked()){
+                                    editor=sharedPreferences.edit();
+                                    editor.putString("学号","");
+                                    editor.putString("密码","");
+                                    editor.putBoolean("记住密码",false);
+                                }
+                                editor.apply();
+                            }
+                        }
+
+
                     }
 
                 });

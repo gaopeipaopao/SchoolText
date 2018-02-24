@@ -11,11 +11,11 @@ import okhttp3.Request;
 
 public class SetOkHttp {
 
-    public static void setHttpGet(OkHttpClient okHttpClient, String address, okhttp3.Callback callback){
+    public static void setHttpGet( OkHttpClient okHttpClient,String address, okhttp3.Callback callback){
         Request request = new Request.Builder().url(address).build();
         okHttpClient.newCall(request).enqueue(callback);
     }
-    public static void setHttpPost(OkHttpClient okHttpClient, String address, String name, String password
+    public static void setHttpPost( OkHttpClient okHttpClient,String address, String name, String password
             , String cookieStr, String code, final Callback callback){
         FormBody formBody=new FormBody.Builder()
                 .add("__VIEWSTATE","dDwxNTMxMDk5Mzc0Ozs+lYSKnsl/mKGQ7CKkWFJpv0btUa8=")
