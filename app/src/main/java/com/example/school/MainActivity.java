@@ -1,5 +1,6 @@
 package com.example.school;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -22,6 +23,7 @@ import android.widget.Toast;
 
 import com.example.school.model.LocalCookieJar;
 import com.example.school.model.SetOkHttp;
+import com.example.school.view.Main2Activity;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -53,6 +55,7 @@ public class MainActivity extends AppCompatActivity {
     private SharedPreferences sharedPreferences;
     private SharedPreferences.Editor editor;
     private Boolean ok=true;
+    private String responses;
     OkHttpClient okHttpClient = new OkHttpClient().newBuilder().cookieJar(new LocalCookieJar()).build();
 
     @Override
@@ -197,7 +200,9 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void onResponse(okhttp3.Call call, Response response) throws IOException {
-                        Document doc= Jsoup.parse(response.body().string());
+                        responses=response.body().string();
+                        Log.d("respon",responses);
+                        Document doc= Jsoup.parse(responses);
                         Elements links=doc.select("a[href]");
                         Element nameElement = doc.getElementById("xhxm");
                         Elements alerts=doc.select("script[language]");
@@ -296,6 +301,11 @@ public class MainActivity extends AppCompatActivity {
                                     editor.putBoolean("记住密码",false);
                                 }
                                 editor.apply();
+                                Intent intent=new Intent(MainActivity.this, Main2Activity.class);
+                                intent.putExtra("Cookie",cookieStr);
+                                intent.putExtra("Response",responses);
+                                intent.putExtra("enter_url",response.request().url().toString());
+                                startActivity(intent);
                             }
                         }
 
