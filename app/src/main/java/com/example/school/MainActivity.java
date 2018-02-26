@@ -45,8 +45,8 @@ public class MainActivity extends AppCompatActivity {
     private EditText  passWords;
     private CheckBox  eye_enter;
     private CheckBox  rember_Password;
-    private String textName="";
-    private String passWord="";
+    private String textName="04161134";
+    private String passWord="970716zuiaibl";
     private String code = "";
     private Button enter;
     private EditText id_code;
@@ -97,13 +97,20 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         sendHttp();
+
+        /**
+         * 测试使用
+         */
+        textNames.setText(textName);
+        passWords.setText(passWord);
+
         enter.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    textName=textNames.getText().toString();
-                    Log.d("Nmae",textName);
-                    passWord=passWords.getText().toString();
-                    Log.d("word",passWord);
+//                    textName=textNames.getText().toString();
+//                    Log.d("Nmae",textName);
+//                    passWord=passWords.getText().toString();
+//                    Log.d("word",passWord);
                     code = id_code.getText().toString();
                     Log.d("code", code);
                     send();
