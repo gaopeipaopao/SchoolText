@@ -52,6 +52,7 @@ public class MainActivity extends AppCompatActivity {
     private EditText id_code;
     private TextView textView;
     private String cookieStr;
+    private String enter_url;
     private SharedPreferences sharedPreferences;
     private SharedPreferences.Editor editor;
     private Boolean ok=true;
@@ -66,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
         if(actionBar!=null){
             actionBar.hide();
         }
-        sharedPreferences= PreferenceManager.getDefaultSharedPreferences(this);
+        sharedPreferences= getSharedPreferences("name",MainActivity.MODE_APPEND);
         eye_enter=(CheckBox)findViewById(R.id.eye_enter);
         rember_Password=(CheckBox)findViewById(R.id.rember_passWord);
         textNames=(EditText)findViewById(R.id.textName);
@@ -139,7 +140,12 @@ public class MainActivity extends AppCompatActivity {
                 List<String> cookies = headers.values("Set-Cookie");
                 String session = cookies.get(0);
                 Log.d("info_cookies", "onResponse-size: " + cookies);
+                enter_url=response.request().url().toString();
                 cookieStr = session.substring(0, session.indexOf(";"));
+                editor=sharedPreferences.edit();
+                editor.putString("Enter_url",enter_url);
+                editor.putString("Cookie",cookieStr);
+                editor.apply();
                 Log.i("info_s", "session is  :" + cookieStr);
                 runOnUiThread(new Runnable() {
                     @Override
@@ -296,7 +302,6 @@ public class MainActivity extends AppCompatActivity {
                                 String studentName = nameElement.html();
                                 Log.d("nameEle",studentName);
                                 if(rember_Password.isChecked()){
-                                    editor=sharedPreferences.edit();
                                     editor.putString("学号",textNames.getText().toString());
                                     editor.putString("密码",passWords.getText().toString());
                                     editor.putBoolean("记住密码",true);

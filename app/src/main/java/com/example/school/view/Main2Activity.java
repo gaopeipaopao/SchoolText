@@ -1,7 +1,10 @@
 package com.example.school.view;
 
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.provider.ContactsContract;
+import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewCompat;
@@ -15,6 +18,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.example.school.Adapter.NoScrollViewPager;
 import com.example.school.Adapter.ViewPagerAdapter;
 import com.example.school.R;
 
@@ -36,10 +40,8 @@ import okhttp3.Response;
 public class Main2Activity extends AppCompatActivity {
 
     private String responses;
-    private String cookie;
-    private OkHttpClient okHttpClient;
-    private String enter_url;
-    private String lesson_url="http://222.24.62.120/xskbcx.aspx?xh=04161134&xm=%B8%DF%C5%E5&gnmkdm=N121603";
+    public String cookie;
+    public String enter_url;
     private TabLayout tabLayout;
     private ViewPager viewPager;
     private ViewPagerAdapter viewPagerAdapter;
@@ -53,12 +55,13 @@ public class Main2Activity extends AppCompatActivity {
         setContentView(R.layout.activity_main2);
         tabLayout = (TabLayout) findViewById(R.id.tab_layout);
         viewPager = (ViewPager) findViewById(R.id.view_pager);
-        // Log.d("aaaaaaa", "onCreate: ");
+        viewPager.setOffscreenPageLimit(4);
+        new NoScrollViewPager(this).setSlide(false);
+        Log.d("aaaaaaa", "onCreate: ");
         initContent();
         initTab();
 
 
-        okHttpClient=new OkHttpClient.Builder().build();
         android.support.v7.app.ActionBar actionBar=getSupportActionBar();
         if(actionBar!=null){
             actionBar.hide();
@@ -69,33 +72,18 @@ public class Main2Activity extends AppCompatActivity {
         enter_url=intent.getStringExtra("enter_url");
         Log.d("enter_url",enter_url);
         Log.d("res",responses);
-        Document document= Jsoup.parse(responses);
-        send();
-    }
-    private void send(){
-        final Request request=new Request.Builder().url(lesson_url).addHeader("Cookie",cookie).addHeader("Referer",enter_url).build();
-        okHttpClient.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
+        Log.d("cook",cookie);
+        Fragment_Lesson fragment_lesson=new Fragment_Lesson();
+        Bundle bundle=new Bundle();
+        bundle.putString("Cokie",cookie);
+        fragment_lesson.setArguments(bundle);
 
-            }
-
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                Log.d("exam",response.body().string());
-            }
-        });
     }
-    private void document(){
-        Document document= Jsoup.parse(responses);
-        Elements elements=document.select("a[href]");
-        for(Element element:elements){
-            if(element.data().contains("学生个人课表")){
-                lesson_url=element.html();
 
-            }
-        }
+    public String getCookie(){
+        return cookie;
     }
+
 
     private void initTab() {
         tabLayout.setTabMode(TabLayout.MODE_FIXED);//TabLayout.MODE_FIXED为tabLayout的模式

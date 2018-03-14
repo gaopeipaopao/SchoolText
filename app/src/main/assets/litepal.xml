@@ -1,0 +1,13 @@
+<litepal>
+
+    <dbname value="school" />
+
+    <version value="1" />
+
+    <list>
+        <mapping class="com.example.school.Tool.Lesson" />
+
+    </list>
+
+
+</litepal>

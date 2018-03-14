@@ -3,11 +3,37 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="wrap_content">
 
-    <TextView
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="hello"/>
+        android:layout_height="35dp"
+        android:background="#FF4081">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:layout_centerInParent="true"
+            android:id="@+id/exam_text"
+            android:textColor="#ffffff"/>
+        <Button
+            android:layout_width="15dp"
+            android:layout_height="15dp"
+            android:layout_alignParentRight="true"
+            android:background="@drawable/add_white"
+            android:layout_marginRight="10dp"
+            android:layout_marginTop="13dp"
+            android:id="@+id/lesson_add"/>
+
+    </RelativeLayout>
+
+    <android.support.v7.widget.RecyclerView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/exam_recycle">
+
+
+    </android.support.v7.widget.RecyclerView>
 
 </LinearLayout>
